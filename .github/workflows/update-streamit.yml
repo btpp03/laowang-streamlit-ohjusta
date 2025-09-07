@@ -1,0 +1,32 @@
+name: auto update streamit
+
+on:
+  workflow_dispatch:
+ 
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Get current Beijing time and prepare commit message
+        id: time
+        run: |
+          TIMESTAMP=$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H:%M:%S')
+          echo "$TIMESTAMP" > version.txt
+          echo "commit_message=更新时间戳 - $TIMESTAMP" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: ${{ steps.time.outputs.commit_message }}
+          branch: main
+          file_pattern: version.txt
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
